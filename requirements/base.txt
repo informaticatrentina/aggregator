@@ -1,0 +1,4 @@
+Flask == 0.9
+Flask-MongoKit == 0.6
+Flask-Script == 0.5.3
+argparse == 1.2.1
