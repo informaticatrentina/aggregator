@@ -1,0 +1,7 @@
+*.pyc
+/.coverage
+/Aggregator.egg-info/
+/build/
+/dist/
+/docs/build/
+/.tox/
