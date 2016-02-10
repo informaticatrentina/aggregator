@@ -41,7 +41,8 @@ class Entry(Document):
         'content': [],
         'tags': list,
         'location': {},
-        'source': basestring
+        'source': basestring,
+        'metadata': {'id': basestring, 'name': basestring, 'description': basestring}  #NOQA
     }
     required_fields = ['content']
     skip_validation = True

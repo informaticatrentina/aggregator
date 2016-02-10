@@ -298,8 +298,14 @@ class EntryManager:
         if 'related' in user_data:
             related = {}
             related = user_data['related'].split(',')
-            conditions['related'] = {'type': related[0], 'id': related[1]}   # NOQA
+            conditions['related.type'] = related[0]
+            conditions['related.id'] = related[1]   # NOQA
 
+        if 'metadata' in user_data:
+            metadatas = {}
+            metadatas = user_data['metadata'].split(',')
+            conditions['metadata.id'] = metadatas[0]
+            conditions['metadata.name'] = metadatas[1]
         # User can define which fields do they want in the results returned.
         # By default, only id is returned.
         if 'return_fields' in user_data:
@@ -388,7 +394,6 @@ class EntryManager:
                     data = db.entry.find(conditions).limit(limit)
                 else:
                     data = db.entry.find(conditions).sort(sort).limit(limit)
-
         entries = []
         if 'count' in user_data:
             count = data.count()
@@ -547,6 +552,8 @@ def entries_get():
         user_data['related'] = request.args.get('related')
     if (request.args.get('source')):
         user_data['source'] = request.args.get('source')
+    if (request.args.get('metadata')):
+        user_data['metadata'] = request.args.get('metadata')
     entries = entry_manager.get(user_data)
     resp = api_response('true', entries)
     return resp
@@ -569,6 +576,10 @@ def entries_get():
  # author
  #    Name
  #    Slug
+ # metadata
+ #     id  string
+ #     name  string
+ #     description string
  # content content is a mandatory element
  # tags
  #   scheme tag name (string), tag slug (sanitized string), tag value (integer)
@@ -686,6 +697,23 @@ def entries_post():
             entry_data['source'] = entry['source']
         else:
             entry_data['source'] = ''
+    if ('metadata' in entry):
+        entry_data['metadata'] = []
+        for data in entry['metadata']:
+            metadata = {}
+            if ('id' in data):
+                if(isinstance(data['id'], basestring)):
+                    metadata['id'] = data["id"]
+                else:
+                    error_code = error_codes.INVALID_CATEGORY_ID
+            if ('name' in data):
+                if(isinstance(data['name'], basestring)):
+                    metadata['name'] = data["name"]
+                else:
+                    error_code = error_codes.INVALID_CATEGORY_NAME
+            if ('description' in data):
+                metadata['description'] = data["description"]
+            entry_data['metadata'].append(metadata)
     if (error_code != ''):
         data = {'message': error_code}
         resp = api_response('true', data)
@@ -708,6 +736,10 @@ def entries_post():
  # related
  #   Type
  #   id
+ # metadata
+ #     id  string
+ #     name  string
+ #     description string
  # publication_date date time
  # title String
  # author
@@ -732,6 +764,8 @@ def entries_put():
         return resp
     else:
         entry_data['_id'] = entry['id']
+    if ('content' in entry):
+        entry_data['content'] = entry['content']
     if ('author' in entry):
         if ('name' in entry['author']):
             if(isinstance(entry['author']['name'], basestring)):
@@ -819,6 +853,28 @@ def entries_put():
         entry_data['related'] = related
     if 'content' in entry:
         entry_data['content'] = entry['content']
+    if 'publication_date' in entry:
+        entry_data['publication_date'] = entry['publication_date']
+    if 'modification_date' in entry:
+        entry_data['modification_date'] = entry['modification_date']
+    if 'metadata' in entry:
+        metadatas = []
+        for data in entry['metadata']:
+            metadata = {}
+            if ('id' in data):
+                if(isinstance(data['id'], basestring)):
+                    metadata['id'] = data["id"]
+                else:
+                    error_code = error_codes.INVALID_CATEGORY_ID
+            if ('name' in data):
+                if(isinstance(data['name'], basestring)):
+                    metadata['name'] = data["name"]
+                else:
+                    error_code = error_codes.INVALID_CATEGORY_NAME
+            if ('description' in data):
+                metadata['description'] = data['description']
+            metadatas.append(metadata)
+        entry_data['metadata'] = metadatas
     response = entry_manager.update(entry_data)
     resp = api_response('true', response)
     return resp
